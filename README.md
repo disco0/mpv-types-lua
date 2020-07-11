@@ -1,7 +1,7 @@
 mpv-types-lua
 ======
 
-Emmylua type declarations for mpv scripts.
+Lua type declarations for mpv scripting.
 
 # FEATURES
 
@@ -20,6 +20,8 @@ Emmylua type declarations for mpv scripts.
 ## Visual Studio Code
 
 ### Extension Configurations
+
+VSCode does not support Emmylua style type declarations out of the box, and requires one of the following extensions.
 
 #### Lua - sumneko.lua - [Marketplace][sumneko.lua] - [Github][sumneko.lua-repo]
 
@@ -68,20 +70,25 @@ Emmylua type declarations for mpv scripts.
 
 ## Intellij
 
-- Required Extensions:
+### Required Extensions
 
-  - 
+  - Emmylua - [Plugin Homepage][tangzx.emmylua-intellij] - [GitHub][tangzx.emmylua-repo]
+
+### Installation
+
+Create a new Lua Zip Library and attach the the `@types` folder.
 
 # TODO
 
- - Create [lua library file](https://github.com/actboy168/lni)
- 
- - Write documentation for `assdraw` submodule
+- Create [lua library file](https://github.com/actboy168/lni)
+
+- Write documentation for `assdraw` submodule
 
 [feature-image]:             media/mpv-types-lua-diptych-vscode-intellij.full.png
 [sumneko.lua]:               https://marketplace.visualstudio.com/items?itemName=sumneko.lua
 [sumneko.lua-repo]:          https://github.com/sumneko/lua-language-server
 [tangzx.emmylua]:            https://marketplace.visualstudio.com/items?itemName=tangzx.emmylua
+[tangzx.emmylua-intellij]:   https://plugins.jetbrains.com/plugin/9768-emmylua
 [tangzx.emmylua-repo]:       https://github.com/EmmyLua/VSCode-EmmyLua
 [stuartwang.luapanda]:       https://marketplace.visualstudio.com/items?itemName=stuartwang.luapanda
 [stuartwang.luapanda-repo]:  https://github.com/Tencent/LuaPanda
