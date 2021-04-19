@@ -1,6 +1,7 @@
 --TODO: Add documentation comments
 
 ---@class assdraw
+---@field text string
 local ass_mt = {}
 ass_mt.__index = ass_mt
 
@@ -9,9 +10,7 @@ local function ass_new()
     return setmetatable({ scale = 4, text = "" }, ass_mt)
 end
 
----@param ass assdraw @ass ass ass
-function ass_mt:new_event()
-end
+function ass_mt:new_event() end
 
 function ass_mt:draw_start() end
 

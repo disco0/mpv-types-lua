@@ -6,27 +6,34 @@
 ---@alias MPV_FORMAT_DOUBLE number
 ---@alias MPV_FORMAT_NONE   nil
 
----@alias MPV_FORMAT_NODE_ARRAY table<number, any>
+---@alias MPV_FORMAT_NODE_ARRAY         table<number, any>
 ---@alias MPV_FORMAT_NODE_ARRAY_FMT_STR table<number, MPV_FORMAT_STRING>
----@alias MPV_FORMAT_NODE_MAP   table<any, any>
----@alias MPV_FORMAT_BYTE_ARRAY string
+---@alias MPV_FORMAT_NODE_MAP           table<any, any>
+---@alias MPV_FORMAT_BYTE_ARRAY         string
 
 ---@alias FileInfoFilter string | "'files'" | "'dirs'" | "'normal'" | "'all'"
 
 ---@class SubprocessParameters
----@field public args           MPV_FORMAT_NODE_ARRAY_FMT_STR
----@field public playback_only  MPV_FORMAT_FLAG
----@field public capture_size   MPV_FORMAT_INT64
----@field public capture_stdout MPV_FORMAT_FLAG
----@field public capture_stderr MPV_FORMAT_FLAG
-local SubprocessParameters = {}
+---@field public args           string[]
+---@field public playback_only  boolean
+---@field public capture_size   number
+---@field public capture_stdout boolean
+---@field public capture_stderr boolean
+local SubprocessParameters
 
----@class Subprocess :  MPV_FORMAT_NODE_MAP
----@field status        MPV_FORMAT_INT64      @ The raw  exit status of the process. It will be negative on error. The meaning of negative  values  is  undefined, other than meaning error (and does not necessarily corre- spond to OS low level exit status values).  On Windows, it can happen that a negative return value is returned  even  if  the process exits gracefully, because the win32 UINT exit code is assigned to an  int  variable before being set as int64_t field in the result map. This might be fixed later.
----@field stdout        MPV_FORMAT_BYTE_ARRAY @ Captured stdout stream, limited to capture_size.
----@field stderr        MPV_FORMAT_BYTE_ARRAY @ Captured stderr stream, limited to capture_size.
----@field error_string  MPV_FORMAT_STRING     @ Empty string if the process exited gracefully. The string killed if the process was terminated in an unusual way.  The string init if the process could not be started. On Windows, killed is only returned when the process has been killed by mpv as a result of playback_only being set to yes.
----@field killed_by_us  MPV_FORMAT_FLAG       @ Set to yes if the process has been killed by mpv, for example as a result of playback_only being set to yes, aborting the command (e.g. by `mp.abort_async_command()`), or if the player is about to exit.
+---@class Subprocess
+---@field public status        number       @ The raw exit status of the process. It will be negative on error. The meaning of negative  values  is  undefined, other than meaning error (and does not necessarily corre- spond to OS low level exit status values).  On Windows, it can happen that a negative return value is returned  even  if  the process exits gracefully, because the win32 UINT exit code is assigned to an  int  variable before being set as int64_t field in the result map. This might be fixed later.
+---@field public stdout        string       @ Captured stdout stream, limited to capture_size.
+---@field public stderr        string | nil @ Captured stderr stream, limited to capture_size.
+---@field public error_string  string       @ Empty string if the process exited gracefully. The string killed if the process was terminated in an unusual way.  The string init if the process could not be started. On Windows, killed is only returned when the process has been killed by mpv as a result of playback_only being set to yes.
+---@field public error         string       @ Copy of `Subprocess#error_string` added in `mp.utils.subprocess`.
+---@field public killed_by_us  boolean      @ Set to yes (true) if the process has been killed by mpv, for example as a result of playback_only being set to yes, aborting the command (e.g. by `mp.abort_async_command()`), or if the player is about to exit.
+local Subprocess
+
+---@class FailedSubprocess
+---@field public error        string            @ Copy of `FailedSubprocess#error_string` added in `mp.utils.subprocess`.
+---@field public error_string string
+---@field public status       integer | '-1'
 
 ---@class FileInfo
 ---@field public mode string @ Protection bits (on Windows, always 755 (octal) for directories and 644 (octal) for files)
@@ -36,6 +43,7 @@ local SubprocessParameters = {}
 ---@field public ctime number @ Time of last metadata change (Linux) / time of creation (Windows)
 ---@field public is_file boolean @ Whether `path` is a regular file
 ---@field public is_dir boolean @ Whether `path` is a directory
+-- local FileInfo
 
 --region utils : Declarations
 
@@ -50,6 +58,34 @@ local SubprocessParameters = {}
 --- strictly part of the guaranteed API.
 ---@class utils
 local utils = { }
+
+--@src player/lua/defaults.lua
+---
+--- Warning in source comment:
+---
+--- It's _very_ wasteful to observe the mpv core "super" property for every
+--- shared sub-property, but then again you shouldn't use this
+---
+---@param name string
+---@param cb fun(name: string, value: MpvPropertyType)
+function utils.shared_script_property_observe(name, cb) end
+
+--@src player/lua/defaults.lua:787
+---
+--- Get value for shared script property `name`, if defined.
+---
+---@param  name string
+---@return      MpvPropertyType | nil
+function utils.shared_script_property_get(name) end
+
+--@src player/lua/defaults.lua:787
+---
+--- Set value for shared script property `name`. Passing `nil` for `value`
+--- removes the property `name` from `shared-script-properties` property list.
+---
+---@param  name string
+---@return      MpvPropertyType | nil
+function utils.shared_script_property_set(name) end
 
 ---
 --- Returns the directory that mpv was launched from. On error, `nil, error`
@@ -179,7 +215,7 @@ function utils.subprocess_detached(t) end
 --- `mp.commandv` and other functions.
 ---
 ---@param  t SubprocessParameters
----@return   Subprocess
+---@return   Subprocess | FailedSubprocess
 function utils.subprocess(t) end
 
 ---
@@ -201,6 +237,13 @@ function utils.to_string(v) end
 ---@param  v table
 ---@return   string | nil, error
 function utils.format_json(v) end
+
+---
+--- Formatter for tables, used by `mp.utils.to_string`.
+---
+---@param  t table
+---@return   string
+function utils.format_table(t) end
 
 ---
 --- Parses the given string argument as JSON, and returns it as a Lua table. On

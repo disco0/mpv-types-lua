@@ -32,7 +32,7 @@ local msg = { }
 ---
 --- are shortcuts, equivalent to their corresponding __`msg.log(level, ...)`__ calls.
 ---
----@overload fun(level: MessageLevel, ...: any)
+---@overload fun(level: MessageLevel, ...)
 ---@param    level MessageLevel
 ---@vararg         string
 function msg.log(level, ...) end
@@ -49,7 +49,7 @@ function msg.log(level, ...) end
 --- __`msg.trace(...)`__
 --- are shortcuts, equivalent to their corresponding __`msg.log(level, ...)`__ calls.
 ---
----@overload fun(...: any)
+---@overload fun(...)
 ---@vararg   string
 function msg.error(...) end
 
@@ -64,7 +64,7 @@ function msg.error(...) end
 --- __`msg.trace(...)`__
 --- are shortcuts, equivalent to their corresponding __`msg.log(level, ...)`__ calls.
 ---
----@overload fun(...: any)
+---@overload fun(...)
 ---@vararg   string
 function msg.fatal(...)   end
 
@@ -79,7 +79,7 @@ function msg.fatal(...)   end
 --- __`msg.trace(...)`__
 --- are shortcuts, equivalent to their corresponding __`msg.log(level, ...)`__ calls.
 ---
----@overload fun(...: any)
+---@overload fun(...)
 ---@vararg   string
 function msg.warn(...) end
 
@@ -94,7 +94,7 @@ function msg.warn(...) end
 --- __`msg.trace(...)`__
 --- are shortcuts, equivalent to their corresponding __`msg.log(level, ...)`__ calls.
 ---
----@overload fun(...: any)
+---@overload fun(...)
 ---@vararg   string
 function msg.info(...)    end
 
@@ -109,7 +109,7 @@ function msg.info(...)    end
 --- __`msg.trace(...)`__
 --- are shortcuts, equivalent to their corresponding __`msg.log(level, ...)`__ calls.
 ---
----@overload fun(...: any)
+---@overload fun(...)
 ---@vararg   string
 function msg.verbose(...) end
 
@@ -124,7 +124,7 @@ function msg.verbose(...) end
 --- __`msg.trace(...)`__
 --- are shortcuts, equivalent to their corresponding __`msg.log(level, ...)`__ calls.
 ---
----@overload fun(...: any):void
+---@overload fun(...): nil
 ---@vararg   string
 function msg.debug(...)   end
 
