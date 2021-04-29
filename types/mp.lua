@@ -13,6 +13,35 @@
 ---@alias MpvPropertyType               boolean | string | number | nil | table
 
 ---
+--- - _`ass-events`_:
+---
+---   The data parameter is a string. The string is split on the newline character. Every line is turned into the Text part of a Dialogue ASS event. Timing is unused (but behavior of timing dependent ASS tags may change in future mpv versions).
+---
+---   Note that it's better to put multiple lines into data, instead of adding multiple OSD overlays.
+---
+---   This provides 2 ASS Styles. OSD contains the text style as defined by the current `--osd-...` options. Default is similar, and contains style that OSD would have if all options were set to the default.
+---
+---   In addition, the res_x and res_y options specify the value of the ASS PlayResX and PlayResY header fields. If res_y is set to 0, PlayResY is initialized to an arbitrary default value (but note that the default for this command is 720, not 0).
+---   If res_x is set to 0, PlayResX is set based on res_y such that a virtual ASS pixel has a square pixel aspect ratio.
+---
+--- - _`none`_:
+---
+---   Special value that causes the overlay to be removed. Most parameters other than id and format are mostly ignored.
+---
+---@alias OSD_Format '"ass-events"' | '"none"'
+
+---@class OSD_Overlay_Data
+---@field public id     number
+---@field public format OSD_Format
+---@field public data   string
+---@field public res_x  number
+---@field public res_y  number
+
+---@class OSD_Overlay : OSD_Overlay_Data
+---@field public update fun(): nil
+---@field public remove fun(): nil
+
+---
 --- Callback type for functions passed to `mp.register_event`.
 ---
 ---@alias EventHandler fun(event: EventName)
@@ -270,6 +299,33 @@ function mp.get_osd_size() end
 ---@param  message string
 ---@return         nil
 function mp.set_osd_ass(screenx, screeny, message) end
+
+---
+--- Create an OSD overlay. This is a very thin wrapper around the `osd-overlay` command. The function returns a table, which mostly contains fields that will be passed to osd-overlay. The format parameter is used to initialize the format field. The data field contains the text to be used as overlay. For details, see the `osd-overlay` command.
+---
+--- In addition, it provides the following methods:
+---
+--- - _`update()`_:
+---
+--- Commit the OSD overlay to the screen, or in other words, run the `osd-overlay` command with the current fields of the overlay table. Returns the result of the osd-overlay command itself.
+---
+--- - _`remove()`_:
+---
+--- Remove the overlay from the screen. A update() call will add it again.
+---
+--- Example:
+---
+--- ``` lua
+---     ov = mp.create_osd_overlay("ass-events")
+---     ov.data = "{\\an5}{\\b1}hello world!"
+---     ov:update()
+--- ```
+---
+--- The advantage of using this wrapper (as opposed to running `osd-overlay` directly) is that the `id` field is allocated automatically.
+---
+---@param  format OSD_Format
+---@return        OSD_Overlay
+function mp.create_osd_overlay(format) end
 
 --endregion OSD Controls
 
