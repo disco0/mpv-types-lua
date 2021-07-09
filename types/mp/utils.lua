@@ -271,7 +271,7 @@ function utils.parse_json(str) end
 ---@return number
 function utils.getpid() end
 
-_G.mp.utils = utils
+mp.utils = utils
 
 return utils
 
