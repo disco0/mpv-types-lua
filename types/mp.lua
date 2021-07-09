@@ -1,13 +1,14 @@
 -- mp.lua - Emmylua type annotations by disk0 <https://github.com/disco0>
+--        - Main repository: <https://github.com/disco0/mpv-types-lua>
 
----@alias error                         string | nil
----@alias AsyncCommmandCallback         fun(success: boolean, result: any | nil, error: string | nil)
+---@alias MaybeError                    string | nil
+---@alias AsyncCommmandCallback         fun(success: boolean, result: any | nil, MaybeError: string | nil)
 ---@alias SharedScriptPropertyCallback  fun(name: string, value: MpvPropertyType)
 ---@alias ObserverCallback              fun(name: string)
 ---@alias EventName                     string | "'start-file'" | "'end-file'" | "'file-loaded'" | "'seek'" | "'playback-restart'" | "'idle'" | "'tick'" | "'shutdown'" | "'log-message'"
----@alias EndFileEventReason            string | "'eof'" | "'stop'" | '"quit"' | "'error'" | "'redirect'" | "'unknown'"
+---@alias EndFileEventReason            string | "'eof'" | "'stop'" | '"quit"' | "'MaybeError'" | "'redirect'" | "'unknown'"
 ---@alias LogMessageEventReason         string | "'prefix'" | "'level'" | "'text'"
----@alias MessageLevel                  string | "'error'" | "'warn'" | "'info'" | "'v'" | "'debug'" | "'trace'"
+---@alias MessageLevel                  string | "'MaybeError'" | "'warn'" | "'info'" | "'v'" | "'debug'" | "'trace'"
 ---@alias HookType                      string | "on_load" | "on_load_fail" | "on_preloaded" | "on_unload"
 ---@alias MpvPropertyTypeLiteral        string | '"none"' | '"native"' | '"boolean"' | '"string"' | '"number"'
 ---@alias MpvPropertyType               boolean | string | number | nil | table
@@ -66,7 +67,7 @@ local mp = {}
 ---
 ---@param   command string
 ---@return  boolean | boolean
----@return  error? CommandError
+---@return  MaybeError? CommandError
 function mp.command(command) end
 
 ---
@@ -93,7 +94,7 @@ function mp.command(command) end
 ---
 ---@vararg   string
 ---@return   true | nil
----@return   error?
+---@return   MaybeError?
 function mp.commandv(...) end
 
 ---
@@ -117,7 +118,7 @@ function mp.commandv(...) end
 ---
 ---@param  command table
 ---@return boolean | 'true' | nil
----@return error?
+---@return MaybeError?
 function mp.command_native(command) end
 
 ---
@@ -162,7 +163,7 @@ function mp.abort_async_command(async_command_return) end
 --- Returns the string on success, or `def, error` on error. `def` is the
 --- second parameter provided to the function, and is nil if it's missing.
 ---
----@overload fun(name: string, def: string): string, error
+---@overload fun(name: string, def: string): string, MaybeError
 ---@param  name string
 ---@return      string
 function mp.get_property(name) end
@@ -177,7 +178,7 @@ function mp.get_property(name) end
 --- missing. Unlike `get_property()`, assigning the return value to a variable
 --- will always result in a string.
 ---
----@overload fun(name: string, def: D): string, error
+---@overload fun(name: string, def: D): string, MaybeError
 ---@param  name string
 ---@return      string
 function mp.get_property_osd(name) end
@@ -200,11 +201,11 @@ function mp.get_property_bool(name) end
 ---
 --- Returns a number on success, or `def, error` on error.
 ---
----@generic  D : number
----@overload fun(name: string, def: D): string, error
----@param  name string
----@return      number
-function mp.get_property_number(name) end
+---@generic D : number | nil
+---@param   name string
+---@param   def? D
+---@return       number | D, MaybeError
+function mp.get_property_number(name, def) end
 
 ---
 --- Similar to `mp.get_property`, but return the property value using the best
@@ -215,11 +216,10 @@ function mp.get_property_number(name) end
 --- Returns a value on success, or `def, error` on error. Note that `nil`
 --- might be a possible, valid value too in some corner cases.
 ---
----@generic  D    string | boolean | number | table
----@overload fun(name: string): string | boolean | number | table | nil, error
+---@generic  D : string | boolean | number | table | nil
 ---@param    name string
----@param    def  D
----@return        D, error | nil
+---@param    def? D
+---@return        D, MaybeError
 function mp.get_property_native(name, def) end
 
 ---
@@ -230,7 +230,7 @@ function mp.get_property_native(name, def) end
 ---
 ---@param  name  string
 ---@param  value string
----@return       true | nil, error | nil
+---@return       true | nil, MaybeError
 function mp.set_property(name, value) end
 
 ---
@@ -238,7 +238,7 @@ function mp.set_property(name, value) end
 ---
 ---@param  name  string
 ---@param  value boolean
----@return       true | nil, error | nil
+---@return       true | nil, MaybeError
 function mp.set_property_bool(name, value) end
 
 ---
@@ -251,7 +251,7 @@ function mp.set_property_bool(name, value) end
 ---
 ---@param  name  string
 ---@param  value number
----@return       true | nil, error | nil
+---@return       true | nil, MaybeError
 function mp.set_property_number(name, value) end
 
 ---
@@ -262,7 +262,7 @@ function mp.set_property_number(name, value) end
 ---
 ---@param  name  string
 ---@param  value any
----@return       true | nil, error | nil
+---@return       true | nil, MaybeError
 function mp.set_property_native(name, value) end
 
 ---
@@ -390,7 +390,7 @@ function mp.create_osd_overlay(format) end
 --- y script-binding fooscript/something
 --- ```
 ---
----@param key  string
+---@param key  KeybindInputKey
 ---@param name string
 ---@param fn   function
 ---@param rp   KeybindFlags | nil
@@ -400,7 +400,7 @@ function mp.add_key_binding(key, name, fn, rp) end
 --- This works almost the same as `mp.add_key_binding`, but registers the key binding in a way that will overwrite the user's custom bindings in their input.conf (`mp.add_key_binding` overwrites default key bindings only, but not those by the user's `input.conf`).
 ---
 ---@overload fun(key: string, name: string, fn: function)
----@param  key  string
+---@param  key  KeybindInputKey
 ---@param  name string
 ---@param  fn   function
 ---@param rp    KeybindFlags | nil
@@ -433,6 +433,168 @@ function mp.remove_key_binding(name) end
 ---@param section string
 ---@param flags   BindingFlags | nil
 function mp.enable_key_bindings(section, flags) end
+
+--region Keys
+
+---@type KeybindInputKey string | KeybindInputSpecial
+
+---@alias KeybindInputSpecial
+---| '"ANY_UNICODE"'
+---| '"AXIS_DOWN"'
+---| '"AXIS_LEFT"'
+---| '"AXIS_RIGHT"'
+---| '"AXIS_UP"'
+---| '"BS"'
+---| '"CANCEL"'
+---| '"CHANNEL_DOWN"'
+---| '"CHANNEL_UP"'
+---| '"CLOSE_WIN"'
+---| '"DEL"'
+---| '"DOWN"'
+---| '"END"'
+---| '"ENTER"'
+---| '"ESC"'
+---| '"F1"'
+---| '"F10"'
+---| '"F11"'
+---| '"F12"'
+---| '"F2"'
+---| '"F3"'
+---| '"F4"'
+---| '"F5"'
+---| '"F6"'
+---| '"F7"'
+---| '"F8"'
+---| '"F9"'
+---| '"FAVORITES"'
+---| '"FORWARD"'
+---| '"GAMEPAD_ACTION_DOWN"'
+---| '"GAMEPAD_ACTION_LEFT"'
+---| '"GAMEPAD_ACTION_RIGHT"'
+---| '"GAMEPAD_ACTION_UP"'
+---| '"GAMEPAD_BACK"'
+---| '"GAMEPAD_DPAD_DOWN"'
+---| '"GAMEPAD_DPAD_LEFT"'
+---| '"GAMEPAD_DPAD_RIGHT"'
+---| '"GAMEPAD_DPAD_UP"'
+---| '"GAMEPAD_LEFT_SHOULDER"'
+---| '"GAMEPAD_LEFT_STICK"'
+---| '"GAMEPAD_LEFT_STICK_DOWN"'
+---| '"GAMEPAD_LEFT_STICK_LEFT"'
+---| '"GAMEPAD_LEFT_STICK_RIGHT"'
+---| '"GAMEPAD_LEFT_STICK_UP"'
+---| '"GAMEPAD_LEFT_TRIGGER"'
+---| '"GAMEPAD_MENU"'
+---| '"GAMEPAD_RIGHT_SHOULDER"'
+---| '"GAMEPAD_RIGHT_STICK"'
+---| '"GAMEPAD_RIGHT_STICK_DOWN"'
+---| '"GAMEPAD_RIGHT_STICK_LEFT"'
+---| '"GAMEPAD_RIGHT_STICK_RIGHT"'
+---| '"GAMEPAD_RIGHT_STICK_UP"'
+---| '"GAMEPAD_RIGHT_TRIGGER"'
+---| '"GAMEPAD_START"'
+---| '"HOME"'
+---| '"HOMEPAGE"'
+---| '"IDEOGRAPHIC_SPACE"'
+---| '"INS"'
+---| '"KP0"'
+---| '"KP1"'
+---| '"KP2"'
+---| '"KP3"'
+---| '"KP4"'
+---| '"KP5"'
+---| '"KP6"'
+---| '"KP7"'
+---| '"KP8"'
+---| '"KP9"'
+---| '"KP_DEC"'
+---| '"KP_DEL"'
+---| '"KP_ENTER"'
+---| '"KP_INS"'
+---| '"LEFT"'
+---| '"MAIL"'
+---| '"MBTN10"'
+---| '"MBTN11"'
+---| '"MBTN12"'
+---| '"MBTN13"'
+---| '"MBTN14"'
+---| '"MBTN15"'
+---| '"MBTN16"'
+---| '"MBTN17"'
+---| '"MBTN18"'
+---| '"MBTN19"'
+---| '"MBTN9"'
+---| '"MBTN_BACK"'
+---| '"MBTN_FORWARD"'
+---| '"MBTN_LEFT"'
+---| '"MBTN_LEFT_DBL"'
+---| '"MBTN_MID"'
+---| '"MBTN_MID_DBL"'
+---| '"MBTN_RIGHT"'
+---| '"MBTN_RIGHT_DBL"'
+---| '"MENU"'
+---| '"MOUSE_BTN0"'
+---| '"MOUSE_BTN0_DBL"'
+---| '"MOUSE_BTN1"'
+---| '"MOUSE_BTN10"'
+---| '"MOUSE_BTN11"'
+---| '"MOUSE_BTN12"'
+---| '"MOUSE_BTN13"'
+---| '"MOUSE_BTN14"'
+---| '"MOUSE_BTN15"'
+---| '"MOUSE_BTN16"'
+---| '"MOUSE_BTN17"'
+---| '"MOUSE_BTN18"'
+---| '"MOUSE_BTN19"'
+---| '"MOUSE_BTN1_DBL"'
+---| '"MOUSE_BTN2"'
+---| '"MOUSE_BTN2_DBL"'
+---| '"MOUSE_BTN3"'
+---| '"MOUSE_BTN4"'
+---| '"MOUSE_BTN5"'
+---| '"MOUSE_BTN6"'
+---| '"MOUSE_BTN7"'
+---| '"MOUSE_BTN8"'
+---| '"MOUSE_BTN9"'
+---| '"MOUSE_ENTER"'
+---| '"MOUSE_LEAVE"'
+---| '"MOUSE_MOVE"'
+---| '"MUTE"'
+---| '"NEXT"'
+---| '"PAUSE"'
+---| '"PAUSEONLY"'
+---| '"PGDWN"'
+---| '"PGUP"'
+---| '"PLAY"'
+---| '"PLAYONLY"'
+---| '"PLAYPAUSE"'
+---| '"POWER"'
+---| '"PREV"'
+---| '"PRINT"'
+---| '"RECORD"'
+---| '"REWIND"'
+---| '"RIGHT"'
+---| '"SEARCH"'
+---| '"SHARP"'
+---| '"SLEEP"'
+---| '"SPACE"'
+---| '"STOP"'
+---| '"TAB"'
+---| '"UNMAPPED"'
+---| '"UP"'
+---| '"VOLUME_DOWN"'
+---| '"VOLUME_UP"'
+---| '"WHEEL_DOWN"'
+---| '"WHEEL_LEFT"'
+---| '"WHEEL_RIGHT"'
+---| '"WHEEL_UP"'
+---| '"WWW"'
+---| '"XF86_NEXT"'
+---| '"XF86_PAUSE"'
+---| '"XF86_PREV"'
+---| '"XF86_STOP"'
+
+--endregion Keys
 
 --endregion Key Bindings
 
@@ -851,6 +1013,12 @@ function mp.unregister_script_message(name) end
 ---@param fn       function
 function mp.add_hook(type, priority, fn) end
 
--- _G.mp = mp
+--region Lifecycle
 
--- return mp
+--- Used by default event loop (`mp_event_loop()`) to decide when to quit.
+---@type boolean
+mp.keep_running = true
+
+--endregion Lifecycle
+
+return mp
