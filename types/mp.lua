@@ -9,7 +9,6 @@
 ---@alias EndFileEventReason            string | "'eof'" | "'stop'" | '"quit"' | "'MaybeError'" | "'redirect'" | "'unknown'"
 ---@alias LogMessageEventReason         string | "'prefix'" | "'level'" | "'text'"
 ---@alias MessageLevel                  string | "'MaybeError'" | "'warn'" | "'info'" | "'v'" | "'debug'" | "'trace'"
----@alias HookType                      string | "on_load" | "on_load_fail" | "on_preloaded" | "on_unload"
 ---@alias MpvPropertyTypeLiteral        string | '"none"' | '"native"' | '"boolean"' | '"string"' | '"number"'
 ---@alias MpvPropertyType               boolean | string | number | nil | table
 
@@ -436,7 +435,7 @@ function mp.enable_key_bindings(section, flags) end
 
 --region Keys
 
----@type KeybindInputKey string | KeybindInputSpecial
+---@alias KeybindInputKey string | KeybindInputSpecial
 
 ---@alias KeybindInputSpecial
 ---| '"ANY_UNICODE"'
@@ -991,6 +990,14 @@ function mp.register_script_message(name, fn) end
 function mp.unregister_script_message(name) end
 
 --endregion Script Messages
+
+---@alias HookType
+---| '"on_load"'              @ Called when a file is to be opened, before anything is actually done. For example, you could read and write the stream-open-filename property to redirect an URL to something else (consider support for streaming sites which rarely give the user a direct media URL), or you could set per-file options with by setting the property file-local-options/<option name>. The player will wait until all hooks are run.Ordered after start-file and before playback-restart.
+---| '"on_load_fail"'         @ Called after after a file has been opened, but failed to. This can be used to provide a fallback in case native demuxers failed to recognize the file, instead of always running before the native demuxers like on_load. Demux will only be retried if stream-open-filename was changed. If it fails again, this hook is _not_ called again, and loading definitely fails.Ordered after on_load, and before playback-restart and end-file.
+---| '"on_preloaded"'         @ Called after a file has been opened, and before tracks are selected and decoders are created. This has some usefulness if an API users wants to select tracks manually, based on the set of available tracks. It&#39;s also useful to initialize --lavfi-complex in a specific way by API, without having to "probe" the available streams at first.Note that this does not yet apply default track selection. Which operations exactly can be done and not be done, and what information is available and what is not yet available yet, is all subject to change.Ordered after on_load_fail etc. and before playback-restart.
+---| '"on_unload"'            @ Run before closing a file, and before actually uninitializing everything. It&#39;s not possible to resume playback in this state. Ordered before end-file. Will also happen in the error case (then after on_load_fail).
+---| '"on_before_start_file"' @ Run before a `start-file` event is sent. (If any client changes the current playlist entry, or sends a quit command to the player, the corresponding event will not actually happen after the hook returns.) Useful to drain property changes before a new file is loaded.
+---| '"on_after_end_file"'    @ Run after an `end-file` event. Useful to drain property changes after a file has finished.
 
 ---
 --- ___&#91;This documents an experimental feature, or feature that is "too special" to
