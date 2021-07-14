@@ -1000,6 +1000,20 @@ function mp.unregister_script_message(name) end
 ---| '"on_after_end_file"'    # Run after an `end-file` event. Useful to drain property changes after a file has finished.
 
 ---
+--- Lua table that can control further aspects about the currently invoked hook.
+---@class HookState
+--- Returning from the hook function should not automatically continue the hook. Instead, the API
+--- user wants to call `HookState#cont` on its own at a later point in time (before or after the
+--- function has returned).
+---@field public defer fun(self: HookState): void
+--- Continue the hook. Doesn't need to be called unless `HookState#defer` was called.
+---@field public cont fun(self: HookState): void
+
+--- Function that will be called during execution of a hook. The parameter `hook` is a Lua object
+--- that can control further aspects about the currently invoked hook.
+---@alias HookHandler fun(hook: HookState): nil
+
+---
 --- ___&#91;This documents an experimental feature, or feature that is "too special" to
 --- guarantee a stable interface.&#93;___
 ---
@@ -1017,7 +1031,7 @@ function mp.unregister_script_message(name) end
 ---
 ---@param type     HookType
 ---@param priority number
----@param fn       function
+---@param fn       HookHandler
 function mp.add_hook(type, priority, fn) end
 
 --region Lifecycle
